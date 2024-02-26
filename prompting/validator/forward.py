@@ -38,15 +38,14 @@ async def forward(self):
     miner_uids = get_random_uids(self, k=self.config.neuron.sample_size)
 
     # Assuming Synapse provides certain functionalities required for integration
+    # TODO(developer): Define the Synapse instance for our use case.
     prompting = Prompting(
         character_info="GPT-4, for engaging and informative conversations.",
         criteria=["Ensure accuracy.", "Maintain a friendly tone."],
         messages=[],
     )
 
-    # Interacting with the LLM
     prompting.add_message("Tell me a joke.")
-    prompting.update_completion("Why did the computer go to the doctor? Because it had a virus!")
 
     # The dendrite client queries the network.
     responses = await self.dendrite(

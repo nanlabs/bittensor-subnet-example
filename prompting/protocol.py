@@ -59,50 +59,54 @@ class PromptingMixin(BaseModel):
     """
 
     class Config:
+        """
+        Pydantic model configuration class for Prompting. This class sets validation of attribute assignment as True.
+        validate_assignment set to True means the pydantic model will validate attribute assignments on the class.
+        """
+
         validate_assignment = True
 
-        character_info: str = Field(
-            ...,
-            title="Character Info",
-            description="Information about the LLM.",
-            allow_mutation=False,
-        )
-        criteria: List[str] = Field(
-            ...,
-            title="Criteria",
-            description="Criteria guiding the LLM's responses.",
-            allow_mutation=False,
-        )
-        messages: List[Message] = Field(
-            ...,
-            title="Messages",
-            description="Dialogue history of the chat session.",
-            allow_mutation=False,
-        )
-        completion: str = Field(
-            "",
-            title="Completion",
-            description="Latest response or completion status of the chat.",
-        )
+    character_info: str = Field(
+        ...,
+        title="Character Info",
+        description="Information about the LLM.",
+        allow_mutation=False,
+    )
+    criteria: List[str] = Field(
+        ...,
+        title="Criteria",
+        description="Criteria guiding the LLM's responses.",
+        allow_mutation=False,
+    )
+    messages: List[Message] = Field(
+        ...,
+        title="Messages",
+        description="Dialogue history of the chat session.",
+        allow_mutation=False,
+    )
+    completion: str = Field(
+        "",
+        title="Completion",
+        description="Latest response or completion status of the chat.",
+    )
 
-        def add_message(self, content: str):
-            """
-            Adds a new message to the dialogue history.
+    def add_message(self, content: str):
+        """
+        Adds a new message to the dialogue history.
 
-            Parameters:
-                content (str): The content of the message to be added.
-            """
-            self.messages.append(Message(content=content))
+        Parameters:
+            content (str): The content of the message to be added.
+        """
+        self.messages.append(Message(content=content))
 
-        def update_completion(self, completion: str):
-            """
-            Updates the completion status of the chat.
+    def update_completion(self, completion: str):
+        """
+        Updates the completion status of the chat.
 
-            Parameters:
-                completion (str): The new completion status or LLM's response.
-            """
-            self.completion = completion
-
+        Parameters:
+            completion (str): The new completion status or LLM's response.
+        """
+        self.completion = completion
 
 class Prompting(PromptingMixin, bt.Synapse):
     """
