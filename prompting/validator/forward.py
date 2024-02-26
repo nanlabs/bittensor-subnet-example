@@ -60,7 +60,6 @@ async def forward(self):
     # Log the results for monitoring purposes.
     bt.logging.info(f"Received responses: {responses}")
 
-    # TODO(developer): Define how the validator scores responses.
     # Adjust the scores based on responses from miners.
     rewards = get_rewards(self, query=self.step, responses=responses)
 

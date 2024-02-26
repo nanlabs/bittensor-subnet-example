@@ -17,11 +17,13 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
+from functools import reduce
+import textblob
 import torch
 from typing import List
 
 
-def reward(query: int, response: int) -> float:
+def reward(query: int, response: str) -> float:
     """
     Reward the miner response to the prompting request. This method returns a reward
     value for the miner, which is used to update the miner's score.
@@ -30,13 +32,15 @@ def reward(query: int, response: int) -> float:
     - float: The reward value for the miner.
     """
 
-    return 1.0 if response == query * 2 else 0
+    blob = textblob.TextBlob(response)
+    sentiment_sum = reduce(lambda x, y: x + y, [sentence.sentiment.polarity for sentence in blob.sentences])
+    return sentiment_sum / len(blob.sentences)
 
 
 def get_rewards(
     self,
     query: int,
-    responses: List[float],
+    responses: List[str],
 ) -> torch.FloatTensor:
     """
     Returns a tensor of rewards for the given query and responses.
