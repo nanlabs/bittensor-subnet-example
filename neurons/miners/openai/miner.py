@@ -132,10 +132,10 @@ class OpenAIMiner(BaseMinerNeuron):
         This method should be replaced with actual logic relevant to the miner's purpose.
 
         Args:
-            synapse (prompting.protocol.Prompting): The synapse object containing the 'dummy_input' data.
+            synapse (prompting.protocol.Prompting): The synapse object containing prompt data.
 
         Returns:
-            prompting.protocol.Prompting: The synapse object with the 'dummy_output' field set to twice the 'dummy_input' value.
+            prompting.protocol.Prompting: The synapse object with the completion data.
 
         The 'forward' function is a placeholder and should be overridden with logic that is appropriate for
         the miner's intended operation. This method demonstrates a basic transformation of input data.

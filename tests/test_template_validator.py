@@ -61,8 +61,8 @@ class TemplateValidatorNeuronTestCase(unittest.TestCase):
         # TODO: Test that the forward function returns the correct value
         pass
 
-    def test_dummy_responses(self):
-        # TODO: Test that the dummy responses are correctly constructed
+    def test_prompting_responses(self):
+        # TODO: Test that the prompting responses are correctly constructed
 
         # Assuming Synapse provides certain functionalities required for integration
         prompting = Prompting(
