@@ -6,7 +6,6 @@ This repository contains a Bittensor Miner that uses OpenAI's GPT-3.5-turbo mode
 
 - Python 3.8+
 - OpenAI Python API (<https://github.com/openai/openai>)
-- Langchain (<https://github.com/langchain-ai/langchain>)
 
 ## Installation
 
