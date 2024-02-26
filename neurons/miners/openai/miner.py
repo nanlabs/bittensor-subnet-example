@@ -16,8 +16,7 @@
 # OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 # DEALINGS IN THE SOFTWARE.
 
-import argparse
-import openai
+from dotenv import load_dotenv, find_dotenv
 import os
 import time
 import typing
@@ -29,149 +28,133 @@ import prompting
 # import base miner class which takes care of most of the boilerplate
 from prompting.base.miner import BaseMinerNeuron
 
+from langchain.prompts import ChatPromptTemplate
+from langchain_core.output_parsers import StrOutputParser
+from langchain.chat_models import ChatOpenAI
+from langchain.callbacks import get_openai_callback
+
 
 class OpenAIMiner(BaseMinerNeuron):
-    """
-    Your miner neuron class. You should use this class to define your miner's behavior. In particular, you should replace the forward function with your own logic. You may also want to override the blacklist and priority functions according to your needs.
+    """Langchain-based miner which uses OpenAI's API as the LLM.
 
-    This class inherits from the BaseMinerNeuron class, which in turn inherits from BaseNeuron. The BaseNeuron class takes care of routine tasks such as setting up wallet, subtensor, metagraph, logging directory, parsing config, etc. You can override any of the methods in BaseNeuron if you need to customize the behavior.
-
-    This class provides reasonable default behavior for a miner such as blacklisting unrecognized hotkeys, prioritizing requests based on stake, and forwarding requests to the forward function. If you need to define custom
+    You should also install the dependencies for this miner, which can be found in the requirements.txt file in this directory.
     """
+
+    @classmethod
+    def add_args(cls, parser: argparse.ArgumentParser):
+        """
+        Adds OpenAI-specific arguments to the command line parser.
+        """
+        super().add_args(parser)
+
 
     def __init__(self, config=None):
-        super(OpenAIMiner, self).__init__(config=config)
+        super().__init__(config=config)
+        self.identity_tags = None
 
-        parser = argparse.ArgumentParser(description="OpenAI Miner")
+        bt.logging.info(f"Initializing with model {self.config.neuron.model_id}...")
 
-        parser.add_argument(
-            "--openai.api_key",
-            type=str,
-            default=None,
-            help="OpenAI API key for authenticating requests.",
+        if self.config.wandb.on:
+            self.identity_tags =  ("openai_miner", ) + (self.config.neuron.model_id, )
+
+        _ = load_dotenv(find_dotenv())
+        api_key = os.environ.get("OPENAI_API_KEY")
+
+        # Set openai key and other args
+        self.model = ChatOpenAI(
+            api_key=api_key,
+            model_name=self.config.neuron.model_id,
+            max_tokens = self.config.neuron.max_tokens,
+            temperature = self.config.neuron.temperature,
         )
 
-        parser.add_argument(
-            "--openai.suffix",
-            type=str,
-            default=None,
-            help="The suffix that comes after a completion of inserted text.",
-        )
-        parser.add_argument(
-            "--openai.max_tokens",
-            type=int,
-            default=100,
-            help="The maximum number of tokens to generate in the completion.",
-        )
-        parser.add_argument(
-            "--openai.temperature",
-            type=float,
-            default=0.4,
-            help="Sampling temperature to use, between 0 and 2.",
-        )
-        parser.add_argument(
-            "--openai.top_p",
-            type=float,
-            default=1,
-            help="Nucleus sampling parameter, top_p probability mass.",
-        )
-        parser.add_argument(
-            "--openai.n",
-            type=int,
-            default=1,
-            help="How many completions to generate for each prompt.",
-        )
-        parser.add_argument(
-            "--openai.presence_penalty",
-            type=float,
-            default=0.1,
-            help="Penalty for tokens based on their presence in the text so far.",
-        )
-        parser.add_argument(
-            "--openai.frequency_penalty",
-            type=float,
-            default=0.1,
-            help="Penalty for tokens based on their frequency in the text so far.",
-        )
-        parser.add_argument(
-            "--openai.model_name",
-            type=str,
-            default="gpt-3.5-turbo",
-            help="OpenAI model to use for completion.",
-        )
+        self.system_prompt = "You are a friendly chatbot who always responds concisely and helpfully. You are honest about things you don't know."
+        self.accumulated_total_tokens = 0
+        self.accumulated_prompt_tokens = 0
+        self.accumulated_completion_tokens = 0
+        self.accumulated_total_cost = 0
 
-        self.add_args(parser)
+    def get_cost_logging(self, cb):
+        bt.logging.info(f"Total Tokens: {cb.total_tokens}")
+        bt.logging.info(f"Prompt Tokens: {cb.prompt_tokens}")
+        bt.logging.info(f"Completion Tokens: {cb.completion_tokens}")
+        bt.logging.info(f"Total Cost (USD): ${round(cb.total_cost,4)}")
 
-        # Load the configuration for the miner
-        config = self.config
+        self.accumulated_total_tokens += cb.total_tokens
+        self.accumulated_prompt_tokens += cb.prompt_tokens
+        self.accumulated_completion_tokens += cb.completion_tokens
+        self.accumulated_total_cost += cb.total_cost
 
-        api_key = config.openai.api_key  # Fetch from configuration
-        if api_key is None:
-            api_key = os.getenv(
-                "OPENAI_API_KEY"
-            )  # Fallback to environment variable
-            if api_key is None:
-                raise ValueError(
-                    "OpenAI API key is required: the miner requires an `OPENAI_API_KEY` either passed directly to the constructor, defined in the configuration, or set in the environment variables."
-                )
-
-        # Additional configurations for wandb
-        if config.wandb.on:
-            self.wandb_run.tags = self.wandb_run.tags + ("openai_miner",)
-
-        # Set the OpenAI API key
-        openai.api_key = api_key
-
-        self.client = openai.OpenAI(api_key=api_key)
+        return  {
+            'total_tokens': cb.total_tokens,
+            'prompt_tokens': cb.prompt_tokens,
+            'completion_tokens': cb.completion_tokens,
+            'total_cost': cb.total_cost,
+            'accumulated_total_tokens': self.accumulated_total_tokens,
+            'accumulated_prompt_tokens': self.accumulated_prompt_tokens,
+            'accumulated_completion_tokens': self.accumulated_completion_tokens,
+            'accumulated_total_cost': self.accumulated_total_cost,
+        }
 
     async def forward(
         self, synapse: prompting.protocol.Prompting
     ) -> prompting.protocol.Prompting:
         """
-        Processes the incoming 'Prompting' synapse by performing a predefined operation on the input data.
+        Processes the incoming synapse by performing a predefined operation on the input data.
         This method should be replaced with actual logic relevant to the miner's purpose.
 
         Args:
-            synapse (prompting.protocol.Prompting): The synapse object containing prompt data.
+            synapse (Prompting): The synapse object containing the 'dummy_input' data.
 
         Returns:
-            prompting.protocol.Prompting: The synapse object with the completion data.
+            Prompting: The synapse object with the 'dummy_output' field set to twice the 'dummy_input' value.
 
         The 'forward' function is a placeholder and should be overridden with logic that is appropriate for
         the miner's intended operation. This method demonstrates a basic transformation of input data.
         """
-        
-        bt.logging.debug(f"synapse: {synapse}")
-        messages = [
-            {
-                "role": message.name,
-                "content": self.append_criteria(
-                    message.content + synapse.character_info, synapse.criteria
-                ),
-            }
-            if message.name == "system"
-            else {"role": message.name, "content": message.content}
-            for message in synapse.messages
-        ]
-        bt.logging.debug(f"messages: {messages}")
-        resp = (
-            self.client.chat.completions.create(
-                model=self.config.openai.model_name,
-                messages=messages,
-                temperature=self.config.openai.temperature,
-                max_tokens=self.config.openai.max_tokens,
-                top_p=self.config.openai.top_p,
-                frequency_penalty=self.config.openai.frequency_penalty,
-                presence_penalty=self.config.openai.presence_penalty,
-                n=self.config.openai.n,
-            )
-            .choices[0]
-            .message.content
-        )
-        synapse.completion = resp
-        bt.logging.debug(f"completion: {resp}")
+        try:
+            with get_openai_callback() as cb:
+                start_time = time.time()
+                bt.logging.debug(f"Message received, forwarding synapse: {synapse}")
 
-        return synapse
+                prompt = ChatPromptTemplate.from_messages([
+                    ("system", self.system_prompt),
+                    ("user", "{input}")
+                ])
+                chain = prompt | self.model | StrOutputParser()
+
+                role = synapse.roles[-1]
+                message = synapse.messages[-1]
+
+                bt.logging.debug(f"💬 Querying openai: {prompt}")
+                response = chain.invoke(
+                    {"role": role, "input": message}
+                )
+
+                synapse.completion = response
+                synapse_latency = time.time() - start_time
+
+                if self.config.wandb.on:
+                    self.log_event(
+                        timing=synapse_latency,
+                        prompt=message,
+                        completion=response,
+                        system_prompt=self.system_prompt,
+                        extra_info=self.get_cost_logging(cb)
+                    )
+
+            bt.logging.debug(f"✅ Served Response: {response}")
+            self.step += 1
+
+            return synapse
+        except Exception as e:
+            bt.logging.error(f"Error in forward: {e}")
+            synapse.completion = "Error: " + str(e)
+        finally:
+            if self.config.neuron.stop_on_forward_exception:
+                self.should_exit = True
+            return synapse
+         
 
     async def blacklist(
         self, synapse: prompting.protocol.Prompting
@@ -185,7 +168,7 @@ class OpenAIMiner(BaseMinerNeuron):
         requests before they are deserialized to avoid wasting resources on requests that will be ignored.
 
         Args:
-            synapse (prompting.protocol.Prompting): A synapse object constructed from the headers of the incoming request.
+            synapse (Prompting): A synapse object constructed from the headers of the incoming request.
 
         Returns:
             Tuple[bool, str]: A tuple containing a boolean indicating whether the synapse's hotkey is blacklisted,
@@ -205,25 +188,12 @@ class OpenAIMiner(BaseMinerNeuron):
 
         Otherwise, allow the request to be processed further.
         """
-        # TODO(developer): Define how miners should blacklist requests.
-        uid = self.metagraph.hotkeys.index(synapse.dendrite.hotkey)
-        if (
-            not self.config.blacklist.allow_non_registered
-            and synapse.dendrite.hotkey not in self.metagraph.hotkeys
-        ):
-            # Ignore requests from un-registered entities.
+        if synapse.dendrite.hotkey not in self.metagraph.hotkeys:
+            # Ignore requests from unrecognized entities.
             bt.logging.trace(
-                f"Blacklisting un-registered hotkey {synapse.dendrite.hotkey}"
+                f"Blacklisting unrecognized hotkey {synapse.dendrite.hotkey}"
             )
             return True, "Unrecognized hotkey"
-
-        if self.config.blacklist.force_validator_permit:
-            # If the config is set to force validator permit, then we should only allow requests from validators.
-            if not self.metagraph.validator_permit[uid]:
-                bt.logging.warning(
-                    f"Blacklisting a request from non-validator hotkey {synapse.dendrite.hotkey}"
-                )
-                return True, "Non-validator hotkey"
 
         bt.logging.trace(
             f"Not Blacklisting recognized hotkey {synapse.dendrite.hotkey}"
@@ -238,7 +208,7 @@ class OpenAIMiner(BaseMinerNeuron):
         This implementation assigns priority to incoming requests based on the calling entity's stake in the metagraph.
 
         Args:
-            synapse (prompting.protocol.Prompting): The synapse object that contains metadata about the incoming request.
+            synapse (Prompting): The synapse object that contains metadata about the incoming request.
 
         Returns:
             float: A priority score derived from the stake of the calling entity.
@@ -250,18 +220,17 @@ class OpenAIMiner(BaseMinerNeuron):
         Example priority logic:
         - A higher stake results in a higher priority value.
         """
-        # TODO(developer): Define how miners should prioritize requests.
         caller_uid = self.metagraph.hotkeys.index(
             synapse.dendrite.hotkey
         )  # Get the caller index.
-        prirority = float(
+        priority = float(
             self.metagraph.S[caller_uid]
         )  # Return the stake as the priority.
         bt.logging.trace(
-            f"Prioritizing {synapse.dendrite.hotkey} with value: ", prirority
+            f"Prioritizing {synapse.dendrite.hotkey} with value: ", priority
         )
-        return prirority
-
+        return priority
+    
 
 # This is the main function, which runs the miner.
 if __name__ == "__main__":
@@ -269,3 +238,7 @@ if __name__ == "__main__":
         while True:
             bt.logging.info("Miner running...", time.time())
             time.sleep(5)
+
+            if miner.should_exit:
+                bt.logging.warning("Ending miner...")
+                break
