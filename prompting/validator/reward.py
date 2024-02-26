@@ -34,7 +34,9 @@ def reward(query: int, response: str) -> float:
 
     blob = textblob.TextBlob(response)
     sentiment_sum = reduce(lambda x, y: x + y, [sentence.sentiment.polarity for sentence in blob.sentences])
-    return sentiment_sum / len(blob.sentences)
+    sentiment_avg = sentiment_sum / len(blob.sentences)
+    sentiment_normalized = (sentiment_avg + 1) / 2
+    return sentiment_normalized
 
 
 def get_rewards(

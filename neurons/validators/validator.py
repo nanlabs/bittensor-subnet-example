@@ -56,7 +56,6 @@ class Validator(BaseValidatorNeuron):
         - Rewarding the miners
         - Updating the scores
         """
-        
         return await forward(self)
 
 
