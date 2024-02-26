@@ -12,8 +12,8 @@
 This repository requires python3.8 or higher. To install, simply clone this repository and install the requirements.
 
 ```bash
-git clone https://github.com/nanlabs/bittensor-prompting-example.git
-cd bittensor-prompting-example
+git clone https://github.com/nanlabs/bittensor-subnet-example.git
+cd bittensor-subnet-example
 python -m pip install -r requirements.txt
 python -m pip install -e .
 ```
