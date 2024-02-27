@@ -7,6 +7,36 @@
 
 ---
 
+# Quickstart using VSCode + Remote Containers (recommended)
+
+1. Install Docker
+2. Install [VSCode](https://code.visualstudio.com/)
+3. Install the [Remote Development](https://marketplace.visualstudio.com/items?itemName=ms-vscode-remote.vscode-remote-extensionpack) extension
+4. Clone this repository
+5. Create your application within a container (see gif below)
+
+![Create application within a container](./docs/vscode-open-in-container.gif)
+
+Once the container is running inside VSCode, you can run the Glue jobs locally as follows:
+
+```sh
+# Install and setup Rust and Cargo
+curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+
+# Setup the environment and run the Subnet
+./scripts/setup_devcontainer.sh
+
+# Setup the wallets
+./scripts/setup_validator_wallet.sh
+./scripts/setup_miner_wallet.sh
+
+# Run the validator
+./scripts/run_validator.sh
+
+# Run the miner
+./scripts/run_openai_miner.sh
+```
+
 # Installation
 
 This repository requires python3.8 or higher. To install, simply clone this repository and install the requirements.
@@ -35,6 +65,7 @@ python -m pip install -r requirements.txt
 
 ---
 
+- [Quickstart using VSCode + Remote Containers (recommended)](#quickstart-using-vscode--remote-containers-recommended)
 - [Installation](#installation)
   - [Quickstarter template](#quickstarter-template)
   - [In order to simplify the building of subnets, this template abstracts away the complexity of the underlying blockchain and other boilerplate code. While the default behavior of the template is sufficient for a simple subnet, you should customize the template in order to meet your specific requirements](#in-order-to-simplify-the-building-of-subnets-this-template-abstracts-away-the-complexity-of-the-underlying-blockchain-and-other-boilerplate-code-while-the-default-behavior-of-the-template-is-sufficient-for-a-simple-subnet-you-should-customize-the-template-in-order-to-meet-your-specific-requirements)
