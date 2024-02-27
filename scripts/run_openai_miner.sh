@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NETUID=${1:-1}  
+NETUID=${1:-0}  
 CHAIN_ENDPOINT=${2:-"ws://127.0.0.1:9946"}  
 WALLET_NAME=${3:-"openai_miner"}  
 WALLET_HOTKEY=${4:-"default"}  

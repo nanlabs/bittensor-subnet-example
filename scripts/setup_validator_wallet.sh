@@ -16,7 +16,7 @@ export BT_VALIDATOR_TOKEN_WALLET=$(cat ~/.bittensor/wallets/"${wallet}"/coldkeyp
 btcli wallet transfer --subtensor.network ws://127.0.0.1:9946 --wallet.name owner --dest "$BT_VALIDATOR_TOKEN_WALLET" --amount 10000 --no_prompt
 
 # Register wallet hotkeys to subnet
-btcli subnet register --wallet.name "${wallet}" --netuid 1 --wallet.hotkey default --subtensor.chain_endpoint ws://127.0.0.1:9946 --no_prompt
+btcli subnet register --wallet.name "${wallet}" --netuid 0 --wallet.hotkey default --subtensor.chain_endpoint ws://127.0.0.1:9946 --no_prompt
 
 # Add stake to the validator
 btcli stake add --wallet.name "${wallet}" --wallet.hotkey default --subtensor.chain_endpoint ws://127.0.0.1:9946 --amount 10000 --no_prompt
