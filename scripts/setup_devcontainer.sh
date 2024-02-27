@@ -3,7 +3,7 @@
 # Logic for setting up and running the environment
 setup_environment() {
     # Install the bittensor-prompting-example python package
-    python -m pip install -e .
+    python -m pip install --upgrade --user -e .
 
     # Create and set up wallets
     # This section can be skipped if wallets are already set up

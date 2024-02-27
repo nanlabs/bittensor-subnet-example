@@ -18,6 +18,10 @@
 	// connected. This is typically a file mount in .devcontainer/compose.yml
 	"workspaceFolder": "/workspaces/${localWorkspaceFolderBasename}",
 	"features": {
+		"ghcr.io/devcontainers/features/rust:1": {
+			"installTools": true,
+			"version": "latest"
+		},
 		"ghcr.io/devcontainers/features/python:1": {
 			"installTools": true,
 			"version": "latest"
