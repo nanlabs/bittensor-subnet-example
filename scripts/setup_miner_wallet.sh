@@ -16,7 +16,7 @@ export BT_MINER_TOKEN_WALLET=$(cat ~/.bittensor/wallets/"${wallet}"/coldkeypub.t
 btcli wallet transfer --subtensor.network ws://127.0.0.1:9946 --wallet.name owner --dest "$BT_MINER_TOKEN_WALLET" --amount 1000 --no_prompt
 
 # Register wallet hotkeys to subnet
-btcli subnet register --wallet.name "${wallet}" --netuid 0 --wallet.hotkey default --subtensor.chain_endpoint ws://127.0.0.1:9946 --no_prompt
+btcli subnet register --wallet.name "${wallet}" --netuid 1 --wallet.hotkey default --subtensor.chain_endpoint ws://127.0.0.1:9946 --no_prompt
 
 # Ensure both the miner and validator keys are successfully registered.
 btcli subnet list --subtensor.chain_endpoint ws://127.0.0.1:9946
