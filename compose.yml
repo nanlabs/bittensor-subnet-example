@@ -5,7 +5,9 @@ volumes:
 
 services:
   common: &common
-    image: opentensor/subtensor:latest
+    build:
+      context: .
+      dockerfile: Dockerfile
     cpu_count: 4
     mem_limit: 40000000000
     memswap_limit: 80000000000

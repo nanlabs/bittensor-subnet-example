@@ -71,7 +71,7 @@ setup(
     author="nan-labs.com",
     packages=find_packages(),
     include_package_data=True,
-    author_email="contact@nan-labs.com"
+    author_email="contact@nan-labs.com",
     license="MIT",
     python_requires=">=3.8",
     install_requires=requirements,
