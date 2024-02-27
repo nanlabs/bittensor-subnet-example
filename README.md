@@ -17,7 +17,7 @@
 
 ![Create application within a container](./docs/vscode-open-in-container.gif)
 
-Once the container is running inside VSCode, you can run the Glue jobs locally as follows:
+Once the container is running inside VSCode, you can run the project locally as follows:
 
 ```sh
 # Install and setup Rust and Cargo
