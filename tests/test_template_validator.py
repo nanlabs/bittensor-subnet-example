@@ -21,14 +21,14 @@ import torch
 import unittest
 import bittensor as bt
 
-from neurons.validator import Neuron as Validator
-from neurons.miner import Neuron as Miner
+from neurons.validators import Neuron as Validator
+from neurons.miners.openai.miner import Neuron as Miner
 
-from template.protocol import Dummy
-from template.validator.forward import forward
-from template.utils.uids import get_random_uids
-from template.validator.reward import get_rewards
-from template.base.validator import BaseValidatorNeuron
+from prompting.protocol import Prompting
+from prompting.validator.forward import forward
+from prompting.utils.uids import get_random_uids
+from prompting.validator.reward import get_rewards
+from prompting.base.validator import BaseValidatorNeuron
 
 
 class TemplateValidatorNeuronTestCase(unittest.TestCase):
@@ -61,16 +61,27 @@ class TemplateValidatorNeuronTestCase(unittest.TestCase):
         # TODO: Test that the forward function returns the correct value
         pass
 
-    def test_dummy_responses(self):
-        # TODO: Test that the dummy responses are correctly constructed
+    def test_prompting_responses(self):
+        # TODO: Test that the prompting responses are correctly constructed
+
+        # Assuming Synapse provides certain functionalities required for integration
+        prompting = Prompting(
+            character_info="GPT-4, for engaging and informative conversations.",
+            criteria=["Ensure accuracy.", "Maintain a friendly tone."],
+            messages=[],
+        )
+
+        # Interacting with the LLM
+        prompting.add_message("Tell me a joke.")
+        prompting.update_completion("Why did the computer go to the doctor? Because it had a virus!")
 
         responses = self.neuron.dendrite.query(
             # Send the query to miners in the network.
             axons=[
                 self.neuron.metagraph.axons[uid] for uid in self.miner_uids
             ],
-            # Construct a dummy query.
-            synapse=Dummy(dummy_input=self.neuron.step),
+            # Construct a synapse.
+            synapse=prompting,
             # All responses have the deserialize function called on them before returning.
             deserialize=True,
         )
@@ -79,12 +90,23 @@ class TemplateValidatorNeuronTestCase(unittest.TestCase):
             self.assertEqual(response, self.neuron.step * 2)
 
     def test_reward(self):
+        # Assuming Synapse provides certain functionalities required for integration
+        prompting = Prompting(
+            character_info="GPT-4, for engaging and informative conversations.",
+            criteria=["Ensure accuracy.", "Maintain a friendly tone."],
+            messages=[],
+        )
+
+        # Interacting with the LLM
+        prompting.add_message("Tell me a joke.")
+        prompting.update_completion("Why did the computer go to the doctor? Because it had a virus!")
+
         # TODO: Test that the reward function returns the correct value
         responses = self.dendrite.query(
             # Send the query to miners in the network.
             axons=[self.metagraph.axons[uid] for uid in self.miner_uids],
-            # Construct a dummy query.
-            synapse=Dummy(dummy_input=self.neuron.step),
+            # Construct a synapse.
+            synapse=prompting,
             # All responses have the deserialize function called on them before returning.
             deserialize=True,
         )
@@ -94,13 +116,24 @@ class TemplateValidatorNeuronTestCase(unittest.TestCase):
         self.assertEqual(rewards, expected_rewards)
 
     def test_reward_with_nan(self):
+        # Assuming Synapse provides certain functionalities required for integration
+        prompting = Prompting(
+            character_info="GPT-4, for engaging and informative conversations.",
+            criteria=["Ensure accuracy.", "Maintain a friendly tone."],
+            messages=[],
+        )
+
+        # Interacting with the LLM
+        prompting.add_message("Tell me a joke.")
+        prompting.update_completion("Why did the computer go to the doctor? Because it had a virus!")
+
         # TODO: Test that NaN rewards are correctly sanitized
         # TODO: Test that a bt.logging.warning is thrown when a NaN reward is sanitized
         responses = self.dendrite.query(
             # Send the query to miners in the network.
             axons=[self.metagraph.axons[uid] for uid in self.miner_uids],
-            # Construct a dummy query.
-            synapse=Dummy(dummy_input=self.neuron.step),
+            # Construct a synapse.
+            synapse=prompting,
             # All responses have the deserialize function called on them before returning.
             deserialize=True,
         )
