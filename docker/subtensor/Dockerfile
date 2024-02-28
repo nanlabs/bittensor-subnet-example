@@ -73,5 +73,7 @@ RUN pip install --no-cache-dir --upgrade pip \
 # Copy the entrypoint script
 COPY --chown=nonroot:nonroot entrypoint.sh /home/nonroot
 
+RUN chmod +x /home/nonroot/entrypoint.sh
+
 # Set the ENTRYPOINT
 ENTRYPOINT ["/home/nonroot/entrypoint.sh"]
