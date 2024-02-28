@@ -22,39 +22,45 @@
 Once the container is running inside VSCode, you can run the project locally as follows:
 
 ## Subtensor
+
 1. Create the owner and the subnet
+
 ```sh
-$ ./scripts/create_owner_subnet.sh
+./scripts/setup_owner_subnet.sh
 ```
 
-2. Create a miner and regiter to the subnet
-```sh
-$ ./scripts/create_miner.sh [name]
+2. Create a miner and register to the subnet
 
-# Example: ./scripts/create_miner.sh miner
+```sh
+./scripts/setup_miner.sh [wallet_name]
+
+# Example: ./scripts/setup_miner.sh miner
 ```
 
-3. Create a validator and regiter to the subnet
-```sh
-$ ./scripts/create_validator.sh [name]
+3. Create a validator and register to the subnet
 
-# Example: ./scripts/create_validator.sh miner
+```sh
+./scripts/setup_validator.sh [wallet_name]
+
+# Example: ./scripts/setup_validator.sh miner
 ```
 
 ## Bittensor
 
-## Run a miner's neuron
-```bash
-./scripts/run_miner.sh [name] [script]
+### Run the OpenAI miner
 
-# Example: ./scripts/run_miner.sh miner1 miner.py
+```bash
+./scripts/run_openai_miner.sh [wallet_name]
+
+# Example: ./scripts/run_openai_miner.sh miner
 ```
 
-## Run a validator's neuron
-```bash
-./scripts/run_validator.sh [name] [script]
+### Run a validator's neuron
 
-# Example: ./scripts/run_validator.sh validator1 validator.py
+```bash
+./scripts/run_validator.sh [wallet_name]
+
+# Example: ./scripts/run_validator.sh validator
 ```
 
 <div align="center">
@@ -88,6 +94,10 @@ python -m pip install -r requirements.txt
 ---
 
 - [Quickstart using VSCode + Remote Containers (recommended)](#quickstart-using-vscode--remote-containers-recommended)
+  - [Subtensor](#subtensor)
+  - [Bittensor](#bittensor)
+    - [Run the OpenAI miner](#run-the-openai-miner)
+    - [Run a validator's neuron](#run-a-validators-neuron)
 - [Installation](#installation)
   - [Quickstarter template](#quickstarter-template)
   - [In order to simplify the building of subnets, this template abstracts away the complexity of the underlying blockchain and other boilerplate code. While the default behavior of the template is sufficient for a simple subnet, you should customize the template in order to meet your specific requirements](#in-order-to-simplify-the-building-of-subnets-this-template-abstracts-away-the-complexity-of-the-underlying-blockchain-and-other-boilerplate-code-while-the-default-behavior-of-the-template-is-sufficient-for-a-simple-subnet-you-should-customize-the-template-in-order-to-meet-your-specific-requirements)

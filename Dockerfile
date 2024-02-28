@@ -1,37 +1,37 @@
-FROM opentensor/subtensor:latest as subtensor
+FROM pytorch/pytorch:2.2.1-cuda12.1-cudnn8-runtime
 
-# show backtraces
-ENV RUST_BACKTRACE 1
+# Create a non-root user
+RUN useradd --create-home nonroot
 
-# Necessary libraries for Rust execution
-RUN apt-get update && \
-    apt-get install -y curl build-essential protobuf-compiler clang git netcat && \
-    rm -rf /var/lib/apt/lists/*
+# Install dependencies
+RUN apt-get update && apt-get install -y \
+        make \
+        build-essential \
+        git \
+        clang \
+        curl \
+        libssl-dev \
+        llvm \
+        libudev-dev \
+        protobuf-compiler \
+        python3 \
+        python3-pip \
+    && rm -rf /var/lib/apt/lists/*
 
-# Install cargo and Rust
-RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
-ENV PATH="/root/.cargo/bin:${PATH}"
+# Switch to non-root user
+USER nonroot
+WORKDIR /home/nonroot
 
-FROM subtensor AS subtensor-dev
+# Install Rust and add wasm target
+RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
+    && . "$HOME/.cargo/env" \
+    && rustup update nightly \
+    && rustup update stable \
+    && rustup target add wasm32-unknown-unknown --toolchain nightly
 
-# Options for setup script
-ARG INSTALL_ZSH="true"
-ARG UPGRADE_PACKAGES="false"
-ARG USERNAME=devcontainer
-ARG USER_UID=1000
-ARG USER_GID=$USER_UID
+# Update PATH environment variable
+ENV PATH="$HOME/.local/bin:${PATH}"
 
-ENV EDITOR code
-
-# Install needed packages and setup non-root user. Use a separate RUN statement to add your own dependencies.
-COPY .devcontainer/common-debian.sh /tmp/library-scripts/
-RUN <<EOF
-apt-get update
-/bin/bash /tmp/library-scripts/common-debian.sh "${INSTALL_ZSH}" "${USERNAME}" "${USER_UID}" "${USER_GID}" "${UPGRADE_PACKAGES}"
-apt-get autoremove -y
-apt-get clean -y
-rm -rf /var/lib/apt/lists/* /tmp/library-scripts
-EOF
-
-# install Docker tools (cli, buildx, compose)
-COPY --from=gloursdocker/docker / /
+# Upgrade pip and install bittensor
+RUN pip install --upgrade pip \
+    && pip install bittensor

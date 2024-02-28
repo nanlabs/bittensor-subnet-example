@@ -1,34 +1,32 @@
 version: '3.8'
 
 volumes:
-  subtensor-node-1-volume:
+  subtensor-volume:
+  bitensor-volume:
 
 services:
-  common: &common
+  common-subtensor: &common-subtensor
+    build:
+      context: ./docker/subtensor
+      dockerfile: Dockerfile
+    cpu_count: 4
+    mem_limit: 40000000000
+    memswap_limit: 80000000000
+
+  subtensor:
+    <<: *common-subtensor
+    volumes:
+      - subtensor-volume:/tmp/blockchain
+
+  common-bittensor: &common-bittensor
     build:
       context: .
       dockerfile: Dockerfile
     cpu_count: 4
     mem_limit: 40000000000
     memswap_limit: 80000000000
-    environment:
-      - CARGO_HOME=/var/www/node-subtensor/.cargo
 
-  subtensor-node-1:
-    <<: *common
-    container_name: subtensor-subtensor-node-1
+  bittensor-dev:
+    <<: *common-bittensor
     volumes:
-      - subtensor-node-1-volume:/tmp/blockchain
-
-    # command:
-    #   - /bin/bash
-    #   - -c
-    #   - |
-    #     node-subtensor \
-    #       --chain raw_spec.json \
-    #       --base-path /tmp/alice \
-    #       --alice \
-    #       --validator \
-    #       --rpc-cors=all \
-    #       --allow-private-ipv4 \
-    #       --discover-local
+      - bitensor-volume:/tmp/bittensor

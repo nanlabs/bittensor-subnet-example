@@ -1,9 +1,9 @@
 #!/bin/bash
 
-NETUID=${1:-1}  
-CHAIN_ENDPOINT=${2:-"ws://127.0.0.1:9946"}  
-WALLET_NAME=${3:-"openai_miner"}  
-WALLET_HOTKEY=${4:-"default"}  
+WALLET_NAME=${1:-"openai_miner"}  
+WALLET_HOTKEY=${2:-"default"}  
+NETUID=${3:-1}  
+CHAIN_ENDPOINT=${4:-"ws://127.0.0.1:9946"}  
 
 python -m pip install --upgrade --user -r ./neurons/miners/openai/requirements.txt
 

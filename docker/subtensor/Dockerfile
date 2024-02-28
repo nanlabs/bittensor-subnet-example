@@ -50,13 +50,18 @@ RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y \
     && rustup update stable \
     && rustup target add wasm32-unknown-unknown --toolchain nightly
 
+# Create necessary directories
+RUN mkdir -p /home/nonroot/scripts/subtensor \
+    && mkdir /home/nonroot/target \
+    && mkdir /home/nonroot/target/release
+
 # Copy necessary files from the builder stage
 COPY --chown=nonroot:nonroot --from=subtensor-builder /subtensor/target/release/node-subtensor /home/nonroot/target/release/
 COPY --chown=nonroot:nonroot --from=subtensor-builder /subtensor/scripts/* /home/nonroot/scripts/subtensor/
 COPY --chown=nonroot:nonroot --from=subtensor-builder /subtensor/Cargo.toml /home/nonroot/
 
 # Ensure scripts are executable
-RUN chmod +x /home/nonroot/scripts/*
+RUN chmod +x /home/nonroot/scripts/subtensor/*
 
 # Set PATH environment variable
 ENV PATH="/home/nonroot/.local/bin:${PATH}"
@@ -65,5 +70,8 @@ ENV PATH="/home/nonroot/.local/bin:${PATH}"
 RUN pip install --no-cache-dir --upgrade pip \
     && pip install --no-cache-dir bittensor
 
+# Copy the entrypoint script
+COPY --chown=nonroot:nonroot entrypoint.sh /home/nonroot
+
 # Set the ENTRYPOINT
-ENTRYPOINT ["/home/nonroot/scripts/entrypoint.sh"]
+ENTRYPOINT ["/home/nonroot/entrypoint.sh"]
