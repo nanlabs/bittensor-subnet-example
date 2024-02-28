@@ -16,6 +16,7 @@ RUN apt-get update && apt-get install -y \
         protobuf-compiler \
         python3 \
         python3-pip \
+        netcat \
     && rm -rf /var/lib/apt/lists/*
 
 # Switch to non-root user

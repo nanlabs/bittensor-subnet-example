@@ -17,7 +17,6 @@ services:
     <<: *common-subtensor
     volumes:
       - subtensor-volume:/tmp/blockchain
-    network_mode: host
 
   common-bittensor: &common-bittensor
     build:
@@ -31,4 +30,3 @@ services:
     <<: *common-bittensor
     volumes:
       - bitensor-volume:/tmp/bittensor
-    network_mode: host
