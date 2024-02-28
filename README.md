@@ -21,22 +21,40 @@
 
 Once the container is running inside VSCode, you can run the project locally as follows:
 
+## Subtensor
+1. Create the owner and the subnet
 ```sh
-# Install and setup Rust and Cargo
-curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
+$ ./scripts/create_owner_subnet.sh
+```
 
-# Setup the environment and run the Subnet
-./scripts/setup_devcontainer.sh
+2. Create a miner and regiter to the subnet
+```sh
+$ ./scripts/create_miner.sh [name]
 
-# Setup the wallets
-./scripts/setup_validator_wallet.sh
-./scripts/setup_miner_wallet.sh
+# Example: ./scripts/create_miner.sh miner
+```
 
-# Run the validator
-./scripts/run_validator.sh
+3. Create a validator and regiter to the subnet
+```sh
+$ ./scripts/create_validator.sh [name]
 
-# Run the miner
-./scripts/run_openai_miner.sh
+# Example: ./scripts/create_validator.sh miner
+```
+
+## Bittensor
+
+## Run a miner's neuron
+```bash
+./scripts/run_miner.sh [name] [script]
+
+# Example: ./scripts/run_miner.sh miner1 miner.py
+```
+
+## Run a validator's neuron
+```bash
+./scripts/run_validator.sh [name] [script]
+
+# Example: ./scripts/run_validator.sh validator1 validator.py
 ```
 
 <div align="center">
